@@ -1,3 +1,3 @@
-module.exports = (message, args) => {
-  message.reply("pong");
+module.exports = (message) => {
+	message.reply("pong");
 };

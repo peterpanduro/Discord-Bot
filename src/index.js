@@ -12,17 +12,17 @@ const client = new Discord.Client();
  * received from Discord
  */
 client.on("ready", () => {
-  console.log("I am ready!");
+	console.log("I am ready!");
 });
 
 client.on("message", (message) => {
-  if (message.content.charAt(0) === prefix) {
-    commands(message);
-  }
+	if (message.content.charAt(0) === prefix) {
+		commands(message);
+	}
 });
 
 try {
-  client.login(token);
+	client.login(token);
 } catch (e) {
-  console.log(e);
+	console.log(e);
 }
