@@ -1,6 +1,7 @@
 const ping = require("./ping");
+const eightBall = require("./8ball");
 
-const allowedCommands = { ping };
+const allowedCommands = { ping, "8ball": eightBall };
 
 module.exports = (message) => {
   const args = message.content.substr(1).split(" ");
