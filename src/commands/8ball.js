@@ -24,11 +24,8 @@ const answers = [
 module.exports = {
 	name: "8ball",
 	description: "Get your questions answered",
-	execute(message, args) {
-		if (args.length === 0) {
-			message.reply("You didn't ask a question");
-			return;
-		}
+	args: true,
+	execute(message) {
 		const i = Math.floor(Math.random() * answers.length);
 		message.reply(answers[i]);
 	},

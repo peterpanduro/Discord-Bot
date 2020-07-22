@@ -29,10 +29,19 @@ client.on("ready", () => {
  */
 client.on("message", (message) => {
 	if (message.content.charAt(0) === prefix) {
-		const args = message.content.substr(1).split(" ");
-		const command = args.shift().toLowerCase();
-		if (!client.commands.has(command)) return;
-		client.commands.get(command).execute(message, args);
+		const args = message.content.slice(prefix.length).trim().split(/ +/);
+		const commandName = args.shift().toLowerCase();
+		if (!client.commands.has(commandName)) return;
+
+		const command = client.commands.get(commandName);
+		if (command.args && !args.length) {
+			return message.reply("You didn't provide any arguments!");
+		}
+		try {
+			command.execute(message, args);
+		} catch (e) {
+			console.error(e);
+		}
 	}
 });
 
