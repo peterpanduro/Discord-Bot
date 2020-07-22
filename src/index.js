@@ -1,14 +1,28 @@
-const http = require('http');
+"use strict";
 
-const hostname = '127.0.0.1';
-const port = process.env.PORT || 3000;
+const Discord = require("discord.js");
+const { prefix, token } = require("../config.json");
+const commands = require("./commands");
 
-const server = http.createServer((req, res) => {
-  res.statusCode = 200;
-  res.setHeader('Content-Type', 'text/plain');
-  res.end('Hello World');
+// Create an instance of a Discord client
+const client = new Discord.Client();
+
+/**
+ * The ready event is vital, it means that only _after_ this will your bot start reacting to information
+ * received from Discord
+ */
+client.on("ready", () => {
+  console.log("I am ready!");
 });
 
-server.listen(port, hostname, () => {
-  console.log(`Server running at http://${hostname}:${port}/`);
+client.on("message", (message) => {
+  if (message.content.charAt(0) === prefix) {
+    commands(message);
+  }
 });
+
+try {
+  client.login(token);
+} catch (e) {
+  console.log(e);
+}
