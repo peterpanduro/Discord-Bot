@@ -21,11 +21,15 @@ const answers = [
 	"Signs point to yes",
 ];
 
-module.exports = (message, args) => {
-	if (args.length === 0) {
-		message.reply("You didn't ask a question");
-		return;
-	}
-	const i = Math.floor(Math.random() * answers.length);
-	message.reply(answers[i]);
+module.exports = {
+	name: "8ball",
+	description: "Get your questions answered",
+	execute(message, args) {
+		if (args.length === 0) {
+			message.reply("You didn't ask a question");
+			return;
+		}
+		const i = Math.floor(Math.random() * answers.length);
+		message.reply(answers[i]);
+	},
 };
