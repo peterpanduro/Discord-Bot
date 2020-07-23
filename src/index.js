@@ -1,11 +1,16 @@
 "use strict";
 
 const Discord = require("discord.js");
-const { prefix, token } = require("../config.json");
+const {
+	prefix,
+	token,
+	rules_channel_id,
+	rules_accepted_role_id,
+} = require("../config.json");
 const fs = require("fs");
 
 // Create an instance of a Discord client
-const client = new Discord.Client();
+const client = new Discord.Client({ partials: ["MESSAGE", "REACTION"] });
 // Create a dynamic collection of commands from the files in /src/commands
 client.commands = new Discord.Collection();
 const commandFiles = fs
@@ -35,12 +40,45 @@ client.on("message", (message) => {
 
 		const command = client.commands.get(commandName);
 		if (command.args && !args.length) {
-			return message.reply("You didn't provide any arguments!");
+			let reply = `You didn't provide any arguments, ${message.author}!`;
+			if (command.usage) {
+				reply += `\nThe proper usage would be: \`${prefix}${command.name} ${command.usage}\``;
+			}
+			return message.channel.send(reply);
 		}
 		try {
 			command.execute(message, args);
 		} catch (e) {
 			console.error(e);
+		}
+	}
+});
+
+/**
+ * Check if reaction is recieved on <Rules> channel.
+ * Add user to <Rules_Accepted_Role_Id>
+ */
+client.on("messageReactionAdd", async (reaction, user) => {
+	if (rules_channel_id) {
+		if (reaction.partial) {
+			// If the message this reaction belongs to was removed the fetching might result in an API error, which we need to handle
+			try {
+				await reaction.fetch();
+			} catch (error) {
+				console.log("Something went wrong when fetching the message: ", error);
+				// Return as `reaction.message.author` may be undefined/null
+				return;
+			}
+		}
+		// Now the message has been cached and is fully available
+		if (reaction.message.channel.id === rules_channel_id) {
+			const member = reaction.message.guild.member(user);
+			const role = member.guild.roles.cache.find(
+				(role) => role.id === rules_accepted_role_id
+			);
+			if (role) {
+				member.roles.add(role);
+			}
 		}
 	}
 });

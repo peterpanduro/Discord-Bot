@@ -25,6 +25,7 @@ module.exports = {
 	name: "8ball",
 	description: "Get your questions answered",
 	args: true,
+	usage: "<question>",
 	execute(message) {
 		const i = Math.floor(Math.random() * answers.length);
 		message.reply(answers[i]);
