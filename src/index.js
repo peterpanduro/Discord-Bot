@@ -1,15 +1,17 @@
 "use strict";
 
 const Discord = require("discord.js");
+const fs = require("fs");
 const {
 	prefix,
 	token,
 	rules_channel_id,
 	rules_accepted_role_id,
+	admin_role_id,
 } = require("../config.json");
-const fs = require("fs");
 
 // Create an instance of a Discord client
+// Partials are used to listen for reactions on existing messages
 const client = new Discord.Client({ partials: ["MESSAGE", "REACTION"] });
 // Create a dynamic collection of commands from the files in /src/commands
 client.commands = new Discord.Collection();
@@ -46,6 +48,16 @@ client.on("message", (message) => {
 			}
 			return message.channel.send(reply);
 		}
+
+		const member = message.guild.member(message.author);
+		const isAdmin = member.roles.cache.some(
+			(role) => role.id === admin_role_id
+		);
+		if (command.adminOnly && !isAdmin) {
+			return message.channel.send(
+				"You don't have the right permission for this command"
+			);
+		}
 		try {
 			command.execute(message, args);
 		} catch (e) {
@@ -59,26 +71,24 @@ client.on("message", (message) => {
  * Add user to <Rules_Accepted_Role_Id>
  */
 client.on("messageReactionAdd", async (reaction, user) => {
-	if (rules_channel_id) {
-		if (reaction.partial) {
-			// If the message this reaction belongs to was removed the fetching might result in an API error, which we need to handle
-			try {
-				await reaction.fetch();
-			} catch (error) {
-				console.log("Something went wrong when fetching the message: ", error);
-				// Return as `reaction.message.author` may be undefined/null
-				return;
-			}
+	if (reaction.partial) {
+		// If the message this reaction belongs to was removed the fetching might result in an API error, which we need to handle
+		try {
+			await reaction.fetch();
+		} catch (error) {
+			console.log("Something went wrong when fetching the message: ", error);
+			// Return as `reaction.message.author` may be undefined/null
+			return;
 		}
-		// Now the message has been cached and is fully available
-		if (reaction.message.channel.id === rules_channel_id) {
-			const member = reaction.message.guild.member(user);
-			const role = member.guild.roles.cache.find(
-				(role) => role.id === rules_accepted_role_id
-			);
-			if (role) {
-				member.roles.add(role);
-			}
+	}
+	// Now the message has been cached and is fully available
+	if (rules_channel_id && reaction.message.channel.id === rules_channel_id) {
+		const member = reaction.message.guild.member(user);
+		const role = member.guild.roles.cache.find(
+			(role) => role.id === rules_accepted_role_id
+		);
+		if (role) {
+			member.roles.add(role);
 		}
 	}
 });
