@@ -4,8 +4,8 @@ WORKDIR /usr/app
 
 COPY package*.json ./
 RUN npm install --only=production
-COPY ./src ./src
-COPY sample.config.json /config/config.json
+COPY . .
+COPY sample.config.json ./config.json
 
-EXPOSE 7331
+EXPOSE 3000
 CMD [ "npm", "start" ]
