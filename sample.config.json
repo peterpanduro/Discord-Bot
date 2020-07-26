@@ -1,7 +1,10 @@
 {
 	"token": "<YOUR_TOKEN_HERE>",
 	"prefix": "!",
-	"rules_channel_id": "735790586199670834",
-	"rules_accepted_role_id": "735793015364255774",
+	"new_user_accept_rules": {
+		"enabled": true,
+		"rules_channel_id": "735790586199670834",
+		"rules_accepted_role_id": "735793015364255774"
+	},
 	"admin_role_id": "193742462114594816"
 }

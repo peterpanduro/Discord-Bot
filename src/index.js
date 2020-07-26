@@ -5,8 +5,7 @@ const fs = require("fs");
 const {
 	prefix,
 	token,
-	rules_channel_id,
-	rules_accepted_role_id,
+	new_user_accept_rules,
 	admin_role_id,
 } = require("../config.json");
 
@@ -71,6 +70,7 @@ client.on("message", (message) => {
  * Add user to <Rules_Accepted_Role_Id>
  */
 client.on("messageReactionAdd", async (reaction, user) => {
+	// If the entire message isn't fetched - Fetch it
 	if (reaction.partial) {
 		// If the message this reaction belongs to was removed the fetching might result in an API error, which we need to handle
 		try {
@@ -82,13 +82,23 @@ client.on("messageReactionAdd", async (reaction, user) => {
 		}
 	}
 	// Now the message has been cached and is fully available
-	if (rules_channel_id && reaction.message.channel.id === rules_channel_id) {
-		const member = reaction.message.guild.member(user);
-		const role = member.guild.roles.cache.find(
-			(role) => role.id === rules_accepted_role_id
-		);
-		if (role) {
-			member.roles.add(role);
+
+	// Deconstruct settings
+	const {
+		enabled,
+		rules_channel_id,
+		rules_accepted_role_id,
+	} = new_user_accept_rules;
+
+	if (enabled) {
+		if (reaction.message.channel.id === rules_channel_id) {
+			const member = reaction.message.guild.member(user);
+			const role = member.guild.roles.cache.find(
+				(role) => role.id === rules_accepted_role_id
+			);
+			if (role) {
+				member.roles.add(role);
+			}
 		}
 	}
 });
