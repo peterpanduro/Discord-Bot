@@ -11,7 +11,9 @@ const {
 
 // Create an instance of a Discord client
 // Partials are used to listen for reactions on existing messages
-const client = new Discord.Client({ partials: ["MESSAGE", "REACTION"] });
+const client = new Discord.Client({
+	partials: ["MESSAGE", "REACTION", "USER", "CHANNEL"],
+});
 // Create a dynamic collection of commands from the files in /src/commands
 client.commands = new Discord.Collection();
 const commandFiles = fs
@@ -65,23 +67,38 @@ client.on("message", (message) => {
 	}
 });
 
+const getReactionFromPotentialPartial = async (reaction) => {
+	if (!reaction.partial) {
+		return reaction;
+	}
+	try {
+		await reaction.fetch();
+		return reaction;
+	} catch (error) {
+		console.log("Something went wrong when fetching the message: ", error);
+		return; // Return as `reaction.message.author` may be undefined/null
+	}
+};
+
+const getUserFromPotentialPartial = async (user) => {
+	if (!user.partial) {
+		return user;
+	}
+	try {
+		await user.fetch();
+		return user;
+	} catch (error) {
+		console.log("Something went wrong when fetching the message: ", error);
+		return;
+	}
+};
+
 /**
  * Check if reaction is recieved on <Rules> channel.
  * Add user to <Rules_Accepted_Role_Id>
  */
 client.on("messageReactionAdd", async (reaction, user) => {
-	// If the entire message isn't fetched - Fetch it
-	if (reaction.partial) {
-		// If the message this reaction belongs to was removed the fetching might result in an API error, which we need to handle
-		try {
-			await reaction.fetch();
-		} catch (error) {
-			console.log("Something went wrong when fetching the message: ", error);
-			// Return as `reaction.message.author` may be undefined/null
-			return;
-		}
-	}
-	// Now the message has been cached and is fully available
+	reaction = await getReactionFromPotentialPartial(reaction);
 
 	// Deconstruct settings
 	const {
@@ -92,8 +109,10 @@ client.on("messageReactionAdd", async (reaction, user) => {
 
 	if (enabled) {
 		if (reaction.message.channel.id === rules_channel_id) {
-			const member = reaction.message.guild.member(user);
-			const role = member.guild.roles.cache.find(
+			const message = reaction.message;
+			const guild = message.guild;
+			const member = await guild.members.fetch(user);
+			const role = guild.roles.cache.find(
 				(role) => role.id === rules_accepted_role_id
 			);
 			if (role) {
